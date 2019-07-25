@@ -46,6 +46,7 @@ unsigned long previousMainMillis = 0;
 byte screen = 10;
 byte prevScreen = 0;
 int incomingScreen = 0;
+String user = "FabLab robot";
 //define custom char
 byte up[8] = {
   0b00100,
@@ -158,7 +159,7 @@ void loop() {
   readButton();
   showScreen();
   autoOut();
-  Serial.println(newStateBtn);
+  //Serial.println(newStateBtn);
 }
 
 void readEspSerial(){
@@ -171,7 +172,7 @@ void readEspSerial(){
 
    // say what you got:
    Serial.print("I received: ");
-   Serial.println("btn state " + String(incomingScreen) + "  screen" + String(screen));//, DEC
+   Serial.println(incomingScreen);//, DEC
 
    }
 }
@@ -185,6 +186,7 @@ void readButton() {
       int a;
       if (screen == 4) {
         //a = 6;
+        tone(beeper, 100, shortBeep/2);
         incomingScreen = 6;
       }
       else if (screen == 6){
@@ -323,10 +325,10 @@ void mainScreenSimulate() {
 
 void mainMenu() {
   previousMenuMillis = currentMillis;
-  logInBeep();
+  //logInBeep();
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(">FabLab Robot");
+  lcd.print(">" + user);
   lcd.setCursor(0,1);
   lcd.print(" Info screen");
   lcd.setCursor(0,2);
@@ -381,7 +383,11 @@ void autoOut() {
     }
   }
   if(currentMillis >= (previousMainMillis+mainDelay)){
+    if (screen == 4){
+      logOutBeep();
+    }
     incomingScreen = 0;
+
   }
 }
 
