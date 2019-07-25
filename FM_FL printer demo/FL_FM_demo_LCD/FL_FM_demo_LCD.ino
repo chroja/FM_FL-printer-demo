@@ -20,6 +20,9 @@ SoftwareSerial espSerial(2, 3); // RX, TX
 //pins
 const int beeper = 10;
 const int btnPrs = 11;
+//state
+bool newStateBtn = 0;
+bool oldStateBtn = 0;
 //beeps
 int lowBeep = 500; //Hz
 int highBeep = 1000;
@@ -29,14 +32,81 @@ int delayBeep = 200; //ms
 //tone(beeper, lowBeep, lowBeep);
 int errDelay = 3000;
 int creditsDelay = 10000;
+int mainDelay = 6000;
+int menuDelay = 3000;
+unsigned long currentMillis = 0;
+unsigned long previousMillis = 0;
+unsigned long previousMenuMillis = 0;
+unsigned long previousMainMillis = 0;
+
+
+
 
 //other
 byte screen = 10;
-//byte prevScreen = 0;
+byte prevScreen = 0;
 int incomingScreen = 0;
-
-
-
+//define custom char
+byte up[8] = {
+  0b00100,
+  0b01110,
+  0b11111,
+  0b00100,
+  0b11100,
+  0b00000,
+  0b00000,
+  0b00000
+};
+byte right[8] = {
+  0b00000,
+  0b00100,
+  0b00010,
+  0b11111,
+  0b00010,
+  0b00100,
+  0b00000,
+  0b00000
+};
+byte temp[8] = {
+  0b00100,
+  0b01010,
+  0b01010,
+  0b01010,
+  0b10001,
+  0b10001,
+  0b01110,
+  0b00000
+};
+byte bed[8] = {
+  0b00000,
+  0b11111,
+  0b10101,
+  0b10001,
+  0b10101,
+  0b11111,
+  0b00000,
+  0b00000
+};
+byte time[8] = {
+  0b00000,
+  0b01110,
+  0b10011,
+  0b10101,
+  0b10001,
+  0b01110,
+  0b00000,
+  0b00000
+};
+byte speed[8] = {
+  0b01000,
+  0b00100,
+  0b10010,
+  0b01001,
+  0b10010,
+  0b00100,
+  0b01000,
+  0b00000
+};
 
 
 
@@ -44,10 +114,23 @@ int incomingScreen = 0;
 
 
 void setup() {
+  //beeper
  pinMode(beeper, OUTPUT);
  digitalWrite(beeper, LOW);
+ //bnt click
+ pinMode(btnPrs, INPUT_PULLUP);
+ newStateBtn = digitalRead(btnPrs);
+ oldStateBtn = digitalRead(btnPrs);
 
- Serial.begin(112500);
+ //create custom charr
+ lcd.createChar(1, up);
+ lcd.createChar(2, right);
+ lcd.createChar(3, temp);
+ lcd.createChar(4, bed);
+ lcd.createChar(5, time);
+ lcd.createChar(6, speed);
+//serial comuniacation
+ Serial.begin(115200);
  espSerial.begin(57600);
  // set up the LCD's number of columns and rows:
  lcd.begin(20, 4);
@@ -71,8 +154,9 @@ void setup() {
 
 void loop() {
   readEspSerial();
+  readButton();
   showScreen();
-
+  Serial.println(newStateBtn);
 }
 
 void readEspSerial(){
@@ -85,13 +169,40 @@ void readEspSerial(){
 
    // say what you got:
    Serial.print("I received: ");
-   Serial.println(incomingScreen);//, DEC
+   Serial.println("btn state " + String(incomingScreen) + "  screen" + String(screen));//, DEC
 
    }
 }
 
+void readButton() {
+  newStateBtn = digitalRead(btnPrs);
+  if(newStateBtn == LOW && oldStateBtn == HIGH){
+    delay(20);
+    newStateBtn = digitalRead(btnPrs);
+    if(newStateBtn == LOW){
+      int a;
+      if (screen == 4) {
+        //a = 6;
+        incomingScreen = 6;
+      }
+      else if (screen == 6){
+        //a = 4;
+        incomingScreen = 4;
+      }
+      else{
+        //a = 0;
+        logOutBeep();
+        incomingScreen = 0;
+      }
+      //incomingScreen = a;
+    }
+  }
+  oldStateBtn = newStateBtn;
+}
+
 void showScreen(){
   if (screen != incomingScreen) {
+    currentMillis = millis();
     screen = incomingScreen;
 
     //Serial.println("screen: " + String(screen));
@@ -136,6 +247,7 @@ void showScreen(){
         break;
 
     }
+    prevScreen = screen;
   }
 }
 
@@ -192,15 +304,29 @@ void noPackage() {
 }
 
 void mainScreenStatic() {
+  previousMainMillis = millis();
+  if (prevScreen == 0){
+    logInBeep();
+  }
+  lcd.clear();
+  //code
+  lcd.setCursor(0,0);
+  lcd.print("main screen");
+
+
+
+  if(millis() >= (previousMainMillis+mainDelay)){
+    incomingScreen = 0;
+  }
+}
+
+void mainScreenSimulate() {
   incomingScreen = 0;
   /* code */
 }
 
-void mainScreenSimulate() {
-  /* code */
-}
-
 void mainMenu() {
+  previousMenuMillis = millis();
   logInBeep();
   lcd.clear();
   lcd.setCursor(0,0);
@@ -212,10 +338,17 @@ void mainMenu() {
   lcd.setCursor(0,3);
   lcd.print(" No SD card");
   lcd.setCursor(19,0);
-  lcd.print((char)58);
-  delay(creditsDelay);
-  //logOutBeep();
-  incomingScreen = 4;
+  lcd.write(1);
+  lcd.setCursor(19,1);
+  lcd.write(1);
+  lcd.setCursor(19,2);
+  lcd.write(2);
+  lcd.setCursor(19,3);
+  lcd.write(2);
+  //delay(creditsDelay);
+  if(millis() >= (previousMenuMillis+menuDelay)){
+    incomingScreen = 4;
+  }
 }
 
 void credits() {
