@@ -24,23 +24,23 @@ const int btnPrs = 11;
 bool newStateBtn = 0;
 bool oldStateBtn = 0;
 //beeps
+int clickBeep = 100; //Hz
 int lowBeep = 500; //Hz
-int highBeep = 1000;
+int highBeep = 1000;//Hz
+int ultaShortBeep = 50; //ms
 int shortBeep = 50; //ms
-int longBeep = 100;
+int longBeep = 100; //ms
 int delayBeep = 200; //ms
-//tone(beeper, lowBeep, lowBeep);
+
+//delys
 int errDelay = 3000;
 int creditsDelay = 10000;
-int mainDelay = 6000;
+int mainDelay = 20000;
 int menuDelay = 5000;
 unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 unsigned long previousMenuMillis = 0;
 unsigned long previousMainMillis = 0;
-
-
-
 
 //other
 byte screen = 10;
@@ -108,7 +108,16 @@ byte speed[8] = {
   0b01000,
   0b00000
 };
-
+byte deg[8] = {
+  0b01100,
+  0b10010,
+  0b10010,
+  0b01100,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000
+};
 
 
 
@@ -130,6 +139,7 @@ void setup() {
  lcd.createChar(4, bed);
  lcd.createChar(5, time);
  lcd.createChar(6, speed);
+ lcd.createChar(7, deg);
 //serial comuniacation
  Serial.begin(115200);
  espSerial.begin(57600);
@@ -146,7 +156,7 @@ void setup() {
  tone(beeper, highBeep, longBeep);
  delay(delayBeep+longBeep);
  //tone(beeper, lowBeep, shortBeep);
- delay(1000);
+ //delay(1000);
  lcd.clear();
  Serial.println("*** Setup complete ***");
 
@@ -183,22 +193,17 @@ void readButton() {
     delay(20);
     newStateBtn = digitalRead(btnPrs);
     if(newStateBtn == LOW){
-      int a;
       if (screen == 4) {
-        //a = 6;
-        tone(beeper, 100, shortBeep/2);
+        tone(beeper, clickBeep, ultaShortBeep);
         incomingScreen = 6;
       }
       else if (screen == 6){
-        //a = 4;
+        tone(beeper, clickBeep, ultaShortBeep);
         incomingScreen = 4;
       }
       else{
-        //a = 0;
-        logOutBeep();
         incomingScreen = 0;
       }
-      //incomingScreen = a;
     }
   }
   oldStateBtn = newStateBtn;
@@ -207,9 +212,6 @@ void readButton() {
 void showScreen(){
   if (screen != incomingScreen) {
     screen = incomingScreen;
-
-    //Serial.println("screen: " + String(screen));
-    //Serial.println("incoming screen: " + String(incomingScreen));
 
     switch (screen) {
       case 0:
@@ -234,10 +236,9 @@ void showScreen(){
         mainMenu();
         break;
       case 7:
-                            /*
-        lcd.clear();
-        lcd.setCursor(0,0);
-        lcd.print("Case 7");*/
+        /*
+        code
+        */
         break;
       case 8:
         credits();
@@ -256,22 +257,30 @@ void showScreen(){
 
 void swipeCard(){
   lcd.clear();
-  lcd.setCursor(2,1);
+  int y;
+  y = 1;//line 1
+  lcd.setCursor(2,y);
   lcd.print("Prusa I3 Fabman");
-  lcd.setCursor(3,2);
+  y = 2;  //line 2
+  lcd.setCursor(3,y);
   lcd.print("Swipe to login");
 }
 
 void noOpenHours() {
   logInBeep();
   lcd.clear();
-  lcd.setCursor(0,0);
+  int y;
+  y = 0;//line 0
+  lcd.setCursor(0,y);
   lcd.print("You are not allowed");
-  lcd.setCursor(0,1);
+  y = 1;//line 1
+  lcd.setCursor(0,y);
   lcd.print("to use this printer");
-  lcd.setCursor(0,2);
+  y = 2;//line 2
+  lcd.setCursor(0,y);
   lcd.print("outside opening");
-  lcd.setCursor(0,3);
+  y = 3;//line 3
+  lcd.setCursor(0,y);
   lcd.print("hours.");
   delay(errDelay);
   logOutBeep();
@@ -281,11 +290,15 @@ void noOpenHours() {
 void noCourse() {
   logInBeep();
   lcd.clear();
-  lcd.setCursor(0,0);
+  int y;
+  y = 0;//line 0
+  lcd.setCursor(0,y);
   lcd.print("You do not have");
-  lcd.setCursor(0,1);
+  y = 1;//line 1
+  lcd.setCursor(0,y);
   lcd.print("required training");
-  lcd.setCursor(0,2);
+  y = 2;//line 2
+  lcd.setCursor(0,y);
   lcd.print("course!!");
   delay(errDelay);
   logOutBeep();
@@ -295,11 +308,15 @@ void noCourse() {
 void noPackage() {
   logInBeep();
   lcd.clear();
-  lcd.setCursor(0,0);
+  int y;
+  y = 0;//line 0
+  lcd.setCursor(0,y);
   lcd.print("You do not have");
-  lcd.setCursor(0,1);
+  y = 1;//line
+  lcd.setCursor(0,y);
   lcd.print("active package.");
-  lcd.setCursor(0,2);
+  y = 2;//line 2
+  lcd.setCursor(0,y);
   lcd.print("Please buy one.");
   delay(errDelay);
   logOutBeep();
@@ -312,9 +329,39 @@ void mainScreenStatic() {
     logInBeep();
   }
   lcd.clear();
-  //code
-  lcd.setCursor(0,0);
-  lcd.print("main screen");
+  int y;
+  y = 0;//line 0
+  lcd.setCursor(0,y);
+  lcd.write(3);
+  lcd.setCursor(2,y);
+  lcd.print("28/0");
+  lcd.write(7);
+  lcd.setCursor(12,y);
+  lcd.print("Z");
+  lcd.setCursor(15,y);
+  lcd.print("0.00");
+  y = 1;//line 1
+  lcd.setCursor(0,y);
+  lcd.write(4);
+  lcd.setCursor(2,y);
+  lcd.print("28/0");
+  lcd.write(7);
+  lcd.setCursor(12,y);
+  lcd.write(6);
+  lcd.setCursor(13,y);
+  lcd.print("100%");
+  y = 2;//line 2
+  lcd.setCursor(3,y);
+  lcd.print("---%");
+  lcd.setCursor(12,y);
+  lcd.write(5);
+  lcd.setCursor(13,y);
+  lcd.print("--:--");
+  y = 3;//line 3
+  lcd.setCursor(0,y);
+  lcd.print("User:");
+  lcd.setCursor(6,y);
+  lcd.print(user);
 
 }
 
@@ -325,37 +372,45 @@ void mainScreenSimulate() {
 
 void mainMenu() {
   previousMenuMillis = currentMillis;
-  //logInBeep();
   lcd.clear();
-  lcd.setCursor(0,0);
+  int y;
+  y = 0;//line 0
+  lcd.setCursor(0,y);
   lcd.print(">" + user);
-  lcd.setCursor(0,1);
+  lcd.setCursor(19,y);
+  lcd.write(1);
+  y = 1;//line 1
+  lcd.setCursor(0,y);
   lcd.print(" Info screen");
-  lcd.setCursor(0,2);
+  lcd.setCursor(19,y);
+  lcd.write(1);
+  y = 2;//line 2
+  lcd.setCursor(0,y);
   lcd.print(" Preheat");
-  lcd.setCursor(0,3);
+  lcd.setCursor(19,y);
+  lcd.write(2);
+  y = 3;//line 3
+  lcd.setCursor(0,y);
   lcd.print(" No SD card");
-  lcd.setCursor(19,0);
-  lcd.write(1);
-  lcd.setCursor(19,1);
-  lcd.write(1);
-  lcd.setCursor(19,2);
+  lcd.setCursor(19,y);
   lcd.write(2);
-  lcd.setCursor(19,3);
-  lcd.write(2);
-  //delay(creditsDelay);
 }
 
 void credits() {
   logInBeep();
   lcd.clear();
-  lcd.setCursor(4,0);
+  int y;
+  y = 0;//line 0
+  lcd.setCursor(4,y);
   lcd.print("FabLab Brno");
-  lcd.setCursor(2,1);
+  y = 1;//line 1
+  lcd.setCursor(2,y);
   lcd.print("fablabbrno.cz/en");
-  lcd.setCursor(7,2);
+  y = 2;//line 2
+  lcd.setCursor(7,y);
   lcd.print("Fabman");
-  lcd.setCursor(5,3);
+  y = 3;//line 3
+  lcd.setCursor(5,y);
   lcd.print("fabman.io");
   delay(creditsDelay);
   logOutBeep();
@@ -365,8 +420,10 @@ void credits() {
 void unknowKey() {
   logInBeep();
   lcd.clear();
-  lcd.setCursor(5,1);
-  lcd.print("Unknow key");
+  int y;
+  y = 1;//line 1
+  lcd.setCursor(5,y);
+  lcd.print("Unknown key");
   delay(errDelay);
   logOutBeep();
   incomingScreen = 0;
