@@ -33,7 +33,7 @@ int delayBeep = 200; //ms
 int errDelay = 3000;
 int creditsDelay = 10000;
 int mainDelay = 6000;
-int menuDelay = 3000;
+int menuDelay = 5000;
 unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 unsigned long previousMenuMillis = 0;
@@ -153,9 +153,11 @@ void setup() {
 }
 
 void loop() {
+  currentMillis = millis();
   readEspSerial();
   readButton();
   showScreen();
+  autoOut();
   Serial.println(newStateBtn);
 }
 
@@ -202,7 +204,6 @@ void readButton() {
 
 void showScreen(){
   if (screen != incomingScreen) {
-    currentMillis = millis();
     screen = incomingScreen;
 
     //Serial.println("screen: " + String(screen));
@@ -304,7 +305,7 @@ void noPackage() {
 }
 
 void mainScreenStatic() {
-  previousMainMillis = millis();
+  previousMainMillis = currentMillis;
   if (prevScreen == 0){
     logInBeep();
   }
@@ -313,11 +314,6 @@ void mainScreenStatic() {
   lcd.setCursor(0,0);
   lcd.print("main screen");
 
-
-
-  if(millis() >= (previousMainMillis+mainDelay)){
-    incomingScreen = 0;
-  }
 }
 
 void mainScreenSimulate() {
@@ -326,7 +322,7 @@ void mainScreenSimulate() {
 }
 
 void mainMenu() {
-  previousMenuMillis = millis();
+  previousMenuMillis = currentMillis;
   logInBeep();
   lcd.clear();
   lcd.setCursor(0,0);
@@ -346,9 +342,6 @@ void mainMenu() {
   lcd.setCursor(19,3);
   lcd.write(2);
   //delay(creditsDelay);
-  if(millis() >= (previousMenuMillis+menuDelay)){
-    incomingScreen = 4;
-  }
 }
 
 void credits() {
@@ -365,7 +358,6 @@ void credits() {
   delay(creditsDelay);
   logOutBeep();
   incomingScreen = 0;
-
 }
 
 void unknowKey() {
@@ -376,6 +368,21 @@ void unknowKey() {
   delay(errDelay);
   logOutBeep();
   incomingScreen = 0;
+}
+
+
+void autoOut() {
+  if (screen == 6){
+    previousMainMillis = currentMillis+mainDelay;
+  }
+  if(currentMillis >= (previousMenuMillis+menuDelay)){
+    if (screen == 6){
+      incomingScreen = 4;//main screen
+    }
+  }
+  if(currentMillis >= (previousMainMillis+mainDelay)){
+    incomingScreen = 0;
+  }
 }
 
 
