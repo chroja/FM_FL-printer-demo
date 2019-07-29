@@ -41,11 +41,13 @@ unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 unsigned long previousMenuMillis = 0;
 unsigned long previousMainMillis = 0;
+unsigned long previousTestMillis = 0;
 
 //other
 byte screen = 10;
 byte prevScreen = 0;
 int incomingScreen = 0;
+int serialIncomingScreen = 0;;
 String user = "FabLab robot";
 //define custom char
 byte up[8] = {
@@ -156,7 +158,7 @@ void setup() {
  tone(beeper, highBeep, longBeep);
  delay(delayBeep+longBeep);
  //tone(beeper, lowBeep, shortBeep);
- //delay(1000);
+
  lcd.clear();
  Serial.println("*** Setup complete ***");
 
@@ -172,19 +174,24 @@ void loop() {
   //Serial.println(newStateBtn);
 }
 
+
+
 void readEspSerial(){
   // send data only when you receive data:
   //if (espSerial.available() > 0) {
   if (Serial.available() > 0) {
-   // read the incoming byte:
-   //incomingScreen = espSerial.parseInt();
-   incomingScreen = Serial.parseInt();
-
-   // say what you got:
-   Serial.print("I received: ");
-   Serial.println(incomingScreen);//, DEC
-
-   }
+    // read the incoming byte:
+    //incomingScreen = espSerial.parseInt();
+    serialIncomingScreen = Serial.parseInt();
+    // say what you got:
+    Serial.print("I received on serial: ");
+    Serial.println(serialIncomingScreen);//, DEC
+  }
+  if ((serialIncomingScreen > 0) && (serialIncomingScreen <= 9)) {
+    serialIncomingScreen = incomingScreen;
+    Serial.println("Next screen is" + String(incomingScreen));
+    serialIncomingScreen = 0;
+  }
 }
 
 void readButton() {
