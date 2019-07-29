@@ -186,11 +186,14 @@ void readEspSerial(){
     // say what you got:
     Serial.print("I received on serial: ");
     Serial.println(serialIncomingScreen);//, DEC
+
   }
   if ((serialIncomingScreen > 0) && (serialIncomingScreen <= 9)) {
-    serialIncomingScreen = incomingScreen;
+    incomingScreen = serialIncomingScreen;
     Serial.println("Next screen is" + String(incomingScreen));
     serialIncomingScreen = 0;
+
+
   }
 }
 
